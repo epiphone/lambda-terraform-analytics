@@ -79,12 +79,12 @@ def log(ctx, env, func):
 
 
 @task
-def psql(ctx, env):
+def psql(ctx):
     """
-    Connect to analytics db using admin credentials stored in .tfvars.
+    Connect to the shared analytics db using admin credentials stored in .tfvars.
     """
-    with ctx.cd(os.path.join(ROOT, 'infrastructure', env)):
-        ret = ctx.run('terraform output shared_analytics_db_url', hide=True)
+    with ctx.cd(os.path.join(ROOT, 'infrastructure', 'shared')):
+        ret = ctx.run('terraform output analytics_db_url', hide=True)
         ctx.run(f'psql {ret.stdout}', pty=True)
 
 

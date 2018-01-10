@@ -1,4 +1,4 @@
-output "database_url" {
+output "analytics_db_url" {
   sensitive = true
   value     = "postgres://${var.analytics_db_master_username}:${var.analytics_db_master_password}@${aws_db_instance.shared_analytics_db.address}:${aws_db_instance.shared_analytics_db.port}/${aws_db_instance.shared_analytics_db.name}"
 }
