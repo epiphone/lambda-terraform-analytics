@@ -1,3 +1,2 @@
 env: dev # default environment
-prefix: lambda-terraform-analytics
 profile: default # AWS profile

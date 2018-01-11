@@ -6,14 +6,13 @@ import logging
 import json
 import os
 
-# import psycopg2
 from psycopg2.extras import execute_values, LoggingConnection
 
 DB_URL = os.environ['DB_URL']
 TABLE_NAME = os.environ['TABLE_NAME']
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)  # set to DEBUG to see log SQL queries
+logger.setLevel(logging.INFO)  # set to DEBUG to log SQL queries
 conn = LoggingConnection(DB_URL)
 conn.initialize(logger)
 
@@ -44,7 +43,10 @@ def main(event, context):
         execute_values(cursor, INSERT_QUERY, values)
         conn.commit()
         cursor.close()
-        return {'processed': len(values), 'errors': len(event) - len(values)}
+        res = {'processed': len(values), 'errors': len(event) - len(values)}
+        logger.info('Processed %d event(s), skipped %d', res['processed'],
+                    res['errors'])
+        return res
     except:
         conn.rollback()
         logger.exception('Insert failed')

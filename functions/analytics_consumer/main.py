@@ -49,4 +49,5 @@ def main(event, context):
         processed += len(messages_to_delete)
         sqs.delete_messages(Entries=messages_to_delete)
 
+    logger.info('Processed %d event(s)', processed)
     return {'processed': processed}

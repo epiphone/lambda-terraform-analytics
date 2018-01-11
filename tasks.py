@@ -45,6 +45,26 @@ def build(ctx, func=None):
 
 
 @task
+def init_db(ctx, env=None):
+    """
+    Initialize the analytics database. Operation is idempotent so running it
+    repeatedly shouldn't cause any adverse effects.
+    """
+    env = env or ctx['env']
+    with ctx.cd(os.path.join(ROOT, 'infrastructure', 'shared')):
+        db_url = ctx.run('terraform output analytics_db_url', hide=True).stdout
+
+        with ctx.cd(os.path.join(ROOT, 'infrastructure', env)):
+            output = json.loads(
+                ctx.run('terraform output -json', hide=True).stdout)
+            sql_script = INIT_ANALYTICS_DB_SCRIPT.format(
+                table=output['analytics_db_schema']['value'] + '.events',
+                consumer=output['analytics_db_consumer_username']['value'],
+                producer=output['analytics_db_producer_username']['value'])
+            ctx.run(f"echo '{sql_script}' | psql {db_url}", echo=True)
+
+
+@task
 def invoke(ctx, func, env=None, payload=None):
     """
     Invoke a function.
@@ -85,8 +105,8 @@ def psql(ctx):
     Connect to the shared analytics db using admin credentials stored in .tfvars.
     """
     with ctx.cd(os.path.join(ROOT, 'infrastructure', 'shared')):
-        ret = ctx.run('terraform output analytics_db_url', hide=True)
-        ctx.run(f'psql {ret.stdout}', pty=True)
+        db_url = ctx.run('terraform output analytics_db_url', hide=True).stdout
+        ctx.run(f'psql {db_url}', pty=True)
 
 
 @task
@@ -156,3 +176,28 @@ def _list_functions():
 def _printc(text, col='\033[0;33m'):
     """Print a line in color, defaulting to yellow."""
     print(f'{col}{text}\033[0m')
+
+
+INIT_ANALYTICS_DB_SCRIPT = """
+CREATE TABLE IF NOT EXISTS {table} (
+  id                    bigserial PRIMARY KEY,
+  event_id              varchar(36) NOT NULL,
+  event_timestamp       timestamp NOT NULL,
+  event_type            varchar(128) NOT NULL,
+  event_version         varchar(12) NOT NULL,
+  app_title             varchar(128) NOT NULL,
+  app_version           varchar(12) NOT NULL,
+  user_id               varchar(128) NOT NULL,
+  user_name             varchar(128) NOT NULL,
+  created_at            timestamp DEFAULT current_timestamp,
+  meta                  jsonb,
+  token_payload         jsonb
+);
+CREATE UNIQUE INDEX IF NOT EXISTS event_id on {table}(event_id);
+CREATE INDEX IF NOT EXISTS event_type on {table}(event_type);
+
+GRANT SELECT, INSERT, UPDATE ON {table} TO "{producer}";
+GRANT SELECT ON {table} TO "{consumer}";
+GRANT USAGE, SELECT, UPDATE ON {table}_id_seq TO "{producer}";
+GRANT USAGE, SELECT ON {table}_id_seq TO "{consumer}";
+"""
