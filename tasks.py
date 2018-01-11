@@ -45,15 +45,15 @@ def build(ctx, func=None):
 
 
 @task
-def invoke(ctx, env, func, payload=None):
+def invoke(ctx, func, env=None, payload=None):
     """
     Invoke a function.
     """
     output_file_name = '.tmp_output'
     with ctx.cd(ROOT):
         ret = ctx.run(
-            f"""aws lambda invoke \
-            --function-name {func}_{env} \
+            f"""aws --profile {ctx['profile']} lambda invoke \
+            --function-name {func}_{env or ctx['env']} \
             --invocation-type RequestResponse \
             --log-type Tail \
             --payload '{payload or '{}'}' \
@@ -71,11 +71,12 @@ def invoke(ctx, env, func, payload=None):
 
 
 @task
-def log(ctx, env, func):
+def log(ctx, func, env=None):
     """
     Stream function logs via awslogs.
     """
-    ctx.run(f'awslogs get /aws/lambda/{func}_{env} --watch')
+    prof, env = ctx['profile'], env or ctx['env']
+    ctx.run(f'awslogs get --profile {prof} /aws/lambda/{func}_{env} --watch')
 
 
 @task
@@ -89,11 +90,24 @@ def psql(ctx):
 
 
 @task
-def publish_event(ctx, env, n=1):
+def package(ctx, func, package_name='package.zip'):
+    """
+    Package a built function into a zip file.
+    """
+    build_path = os.path.join(FUNCTIONS_PATH, func, 'build')
+    with ctx.cd(build_path):
+        zip_file = 'package.zip'
+        ctx.run(
+            f'zip -x "*.pyc" -x "*.zip" -x \*.dist-info\* -r {package_name} .',
+            echo=True)
+
+
+@task
+def publish_event(ctx, env=None, n=1):
     """
     Publish randomized test events on the events SNS topic.
     """
-    with ctx.cd(os.path.join(ROOT, 'infrastructure', env)):
+    with ctx.cd(os.path.join(ROOT, 'infrastructure', env or ctx['env'])):
         topic = ctx.run(
             'terraform output messaging_topic_arn', hide=True).stdout
         for _ in range(n):
@@ -113,34 +127,26 @@ def publish_event(ctx, env, n=1):
 
 
 @task
-def update(ctx, env, func):
+def update(ctx, func, env=None):
     """
     Quickly update function code without rebuilding dependencies.
     """
-    # TODO support multiple funcs, create zip in function root folder
-    target = os.path.join(FUNCTIONS_PATH, func)
-    with ctx.cd(target):
-        build_dir = os.path.join(target, 'build')
+    # TODO support multiple funcs
+    profile, env = ctx['profile'], env or ctx['env']
+    func_path = os.path.join(FUNCTIONS_PATH, func)
+
+    with ctx.cd(func_path):
+        build_dir = os.path.join(func_path, 'build')
         if not (os.path.isdir(build_dir) and os.listdir(build_dir)):
-            build(ctx, func)
+            build(ctx, [func])
         else:
-            ctx.run('cp -r ./*.py build/')
+            ctx.run('cp -r ./*.py build/')  # TODO: handle nested dirs
 
-        zip_path = os.path.join('~/tmp', f'{func}_{env}.zip')
-        with ctx.cd('build'):
-            ctx.run(f'zip -x "*.pyc" -x \*.dist-info\* -r {zip_path} .')
-            ctx.run(
-                f'aws lambda update-function-code --function-name {func}_{env} --zip-file fileb://{zip_path}'
-            )
-
-
-# @task
-# def package(ctx):
-#     """
-#     Package lambda code with dependencies into a .zip file for uploading.
-#     """
-#     with ctx.cd(os.path.join(ROOT, 'build')):
-#         ctx.run(f'zip -x "*.pyc" -r {os.path.join("..", PACKAGE_NAME)} .')
+        zip_file = 'package.zip'
+        package(ctx, func, package_name=zip_file)
+        ctx.run(
+            f'aws --profile {profile} lambda update-function-code --function-name {func}_{env} --zip-file fileb://{os.path.join("build", zip_file)}',
+            echo=True)
 
 
 def _list_functions():
