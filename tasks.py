@@ -96,10 +96,8 @@ def package(ctx, func, package_name='package.zip'):
     """
     build_path = os.path.join(FUNCTIONS_PATH, func, 'build')
     with ctx.cd(build_path):
-        zip_file = 'package.zip'
-        ctx.run(
-            f'zip -x "*.pyc" -x "*.zip" -x \*.dist-info\* -r {package_name} .',
-            echo=True)
+        zip_path = os.path.join(FUNCTIONS_PATH, func, package_name)
+        ctx.run(f'zip -x "*.pyc" -x \*.dist-info\* -r {zip_path} .', echo=True)
 
 
 @task
@@ -123,7 +121,9 @@ def publish_event(ctx, env=None, n=1):
                 'meta': {},
                 'user_payload': {}
             })
-            ctx.run(f"aws sns publish --message '{event}' --topic-arn {topic}")
+            ctx.run(
+                f"aws sns publish --message '{event}' --topic-arn {topic}",
+                echo=True)
 
 
 @task
@@ -145,7 +145,7 @@ def update(ctx, func, env=None):
         zip_file = 'package.zip'
         package(ctx, func, package_name=zip_file)
         ctx.run(
-            f'aws --profile {profile} lambda update-function-code --function-name {func}_{env} --zip-file fileb://{os.path.join("build", zip_file)}',
+            f'aws --profile {profile} lambda update-function-code --function-name {func}_{env} --zip-file fileb://{zip_file}',
             echo=True)
 
 
