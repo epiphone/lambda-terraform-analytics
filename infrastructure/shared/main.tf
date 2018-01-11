@@ -1,26 +1,13 @@
 terraform {
   backend "s3" {
     encrypt = true
-    bucket  = "tacit-terraform-state-shared"
-    key     = "terraform.tfstate"
+    key     = "terraform-shared.tfstate"
     region  = "eu-central-1"
   }
 }
 
 provider "aws" {
   region = "eu-central-1"
-}
-
-resource "aws_s3_bucket" "terraform-state-storage-s3" {
-  bucket = "tacit-terraform-state-shared"
-
-  versioning {
-    enabled = true
-  }
-
-  tags = {
-    Name = "S3 Terraform remote state store for shared environment"
-  }
 }
 
 resource "aws_security_group" "allow_postgres_from_all" {

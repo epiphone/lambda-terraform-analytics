@@ -1,13 +1,13 @@
 locals {
   analytics_db_consumer_url = "postgres://${var.analytics_consumer_username}:${var.analytics_consumer_password}@${data.terraform_remote_state.shared.analytics_db_address}:${data.terraform_remote_state.shared.analytics_db_port}/${data.terraform_remote_state.shared.analytics_db_name}"
   analytics_db_producer_url = "postgres://${var.analytics_producer_username}:${var.analytics_producer_password}@${data.terraform_remote_state.shared.analytics_db_address}:${data.terraform_remote_state.shared.analytics_db_port}/${data.terraform_remote_state.shared.analytics_db_name}"
-  stage                     = "dev"
+  stage                     = "staging"
 }
 
 terraform {
   backend "s3" {
     encrypt = true
-    key     = "terraform-dev.tfstate"
+    key     = "terraform-staging.tfstate"
     region  = "eu-central-1"
   }
 }

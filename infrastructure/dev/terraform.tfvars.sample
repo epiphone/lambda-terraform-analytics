@@ -1,0 +1,2 @@
+analytics_consumer_password = "CONSUMER_PASSWORD"
+analytics_producer_password = "PRODUCER_PASSWORD"

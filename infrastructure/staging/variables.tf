@@ -1,11 +1,11 @@
 variable "analytics_consumer_username" {
-  default = "consumer_dev"
+  default = "consumer_staging"
 }
 
 variable "analytics_consumer_password" {}
 
 variable "analytics_producer_username" {
-  default = "producer_dev"
+  default = "producer_staging"
 }
 
 variable "analytics_producer_password" {}
