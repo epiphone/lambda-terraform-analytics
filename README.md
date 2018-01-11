@@ -1,68 +1,64 @@
-# Analytics events handler
+# A Simple Lambda/Terraform analytics service
 
-Store queued analytics events to Postgres.
-
-AWs infra is defined in `main.tf` for reproducability.
+![Architecture](doc/cloudcraft.png)
 
 ## Dependencies
 
-- aws-cli (and logged in user)
-- [apex](https://github.com/apex/apex)
-- [invoke](docs.pyinvoke.org/)
+- AWS Command Line Interface
+- [invoke](https://github.com/pyinvoke/invoke)
 - pip-env >= 8.3.0
 - terraform
+- [awslogs](https://github.com/jorgebastida/awslogs) (optional)
 
-## Install
+## Set up infrastructure
 
-Install dependencies:
+First set up the shared environment:
 
+1. Create a S3 bucket for storing [Terraform remote state](https://www.terraform.io/docs/state/remote.html).
+2. Move to the shared environment directory: `cd infrastructure/shared`.
+3. Create a `terraform.tfvars` [secret variables file](https://www.terraform.io/intro/getting-started/variables.html#from-a-file). Check [`infrastructure/shared/terraform.tfvars.sample`](infrastructure/shared/terraform.tfvars.sample) for an example. These files should naturally be kept outside version control.
+4. Run `terraform init` to set up a Terraform working directory. You'll be prompted for the name of the remote state bucket created in step 1. Alternatively you can define the bucket with a `-backend-config='bucket=[BUCKET NAME]'` argument.
+5. Run `terraform apply` to build the infra.
+
+Now with the shared infra set up, you can provision individual environments. For example to set up `dev`:
+
+1. First build the Lambda functions: `inv build`.
+2. Navigate to the environment directory: e.g. `cd infrastructure/dev`.
+3. Repeat the above steps 3-5 to set up the environment-specific resources.
+4. Initialize the database: `inv init-db --env dev`.
+
+And we're set! Replace `dev` with `staging`, `prod`, etc to set up additional environments.
+
+## Tasks
+
+Various management tasks are defined in [`tasks.py`](tasks.py). The default environment (`--env`) and AWS profile can be configured in [`invoke.yaml`](invoke.yaml).
+
+Run `inv --list` to see a summary of all available tasks. The most important tasks are as follows:
+
+### Build
+
+`inv build --func [FUNCTION]`: Build a function. Builds all if `--func` is not specified.
+
+### Invoke
+
+`inv invoke [FUNCTION] --env [ENV] --payload [PAYLOAD]`: Invoke a deployed function.
+
+Example:
 ```bash
-pipenv install -d
+inv invoke analytics_worker --env staging --payload '[{"event_id": 12}]'
 ```
 
-## Deploy
+### Update
 
-First [assign secret terraform variables](https://www.terraform.io/intro/getting-started/variables.html#assigning-variables), for example by creating a `terraform.tfvars` file. Check `variables.tf` for required keys.
+`inv update [FUNCTION] --env [ENV]`: Quickly update function code without rebuilding dependencies.
 
-Then zip up the lambda with dependencies and apply terraform to set up all AWS resources:
+## Limitations
 
-```bash
-inv build package # package lambda and dependencies into a .zip file
-terraform apply
-```
+Due to [a bug in the Terraform Postgres provider](https://github.com/terraform-providers/terraform-provider-postgresql/issues/16) changing analytics DB producer/consumer passwords in a `.tfvars` file doesn't actually result in a password update. As a workaround you can manually `DROP ROLE ...` via `psql` and re-apply terraform.
 
-## Invoke
+## TODO
 
-Invoke the deployed function:
-
-```bash
-aws lambda invoke --function-name=analytics_lambda --invocation-type=RequestResponse --payload='{"test": "value"}' --log-type=Tail output.txt
-```
-
-## Develop
-
-Run `inv update` to quickly package and upload a new lambda zip without rebuilding dependencies.
-
-### Local development
-
-Use [SAM Local](https://github.com/awslabs/aws-sam-local) to invoke the lambda locally:
-
-```bash
-sam local invoke -e event.json
-```
-
-Local invocation is based on the `lambda/template.yaml` SAM template. `lambda/event.json` can be used as a test event. **Note**, don't use `sam local` for deployment as that's handled by `terraform` as outlined above.
-
-## Access DB
-
-Admin user db access:
-
-```bash
-inv psql
-```
-
-## Sample event
-
-```json
-{"event_id": "1234-asdf", "event_timestamp": "2017-12-20T17:29:36.272Z", "event_type": "test_event", "event_version": "1.0", "app_title": "main", "app_version": "1.0", "user_id": "someuser", "user_name": "test@user.com", "meta": {"x": [12]}, "user_payload": {"email": "test@user.com"}}
-```
+- improve docs
+- cloudwatch cron
+- testing
+- local invocation
