@@ -14,10 +14,10 @@ FUNCTIONS_PATH = os.path.join(ROOT, 'functions')
 PRECOMPILED_PATH = os.path.join(ROOT, 'precompiled')
 
 
-@task(help={'func': 'The target function to build'}, iterable=['func'])
+@task(iterable=['func'])
 def build(ctx, func=None):
     """
-    Build Lambda handlers. Specify --func to only build one function.
+    Build Lambda handlers. Specify --func to only build specific functions.
     """
     for f in (func if func else _list_functions()):
         with ctx.cd(os.path.join(FUNCTIONS_PATH, f)):
@@ -144,6 +144,16 @@ def publish_event(ctx, env=None, n=1):
             ctx.run(
                 f"aws sns publish --message '{event}' --topic-arn {topic}",
                 echo=True)
+
+
+@task(iterable=['func'])
+def test(ctx, func=None):
+    """
+    Test Lambda handlers. Specify --func to only test specific functions.
+    """
+    for f in (func if func else _list_functions()):
+        with ctx.cd(os.path.join(FUNCTIONS_PATH, f)):
+            ctx.run('pipenv run python -m pytest -s')
 
 
 @task

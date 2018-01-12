@@ -12,6 +12,7 @@ pylint = "*"
 yapf = "*"
 ipython = "*"
 ipdb = "*"
+pytest = "*"
 
 
 [packages]

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "40268ca9cc3068d9f63580b55c23c30714ece83f39b6409235d732c04f83471e"
+            "sha256": "9736434b8dee453649e80f3ac67b5c6d92870bbba24d780cbeae947e000a45e7"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -74,12 +74,19 @@
             ],
             "version": "==1.6.0"
         },
+        "attrs": {
+            "hashes": [
+                "sha256:a17a9573a6f475c99b551c0e0a812707ddda1ec9653bed04c13841404ed6f450",
+                "sha256:1c7960ccfd6a005cd9f7ba884e6316b5e430a3f1a6c37c5f87d8b43f83b54ec9"
+            ],
+            "version": "==17.4.0"
+        },
         "backports.functools-lru-cache": {
             "hashes": [
                 "sha256:4ba998e881f285c1d1b73f5b6e3766539b4e162320f9589334400c5ddc35198c",
                 "sha256:31f235852f88edc1558d428d890663c49eb4514ffec9f3650e7f3c9e4a12e36f"
             ],
-            "markers": "python_version == '2.7'",
+            "markers": "python_version < '3.4'",
             "version": "==1.4"
         },
         "backports.shutil-get-terminal-size": {
@@ -92,17 +99,17 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:dff49d08f42ed29ec6252598ca7f22ed9973d0411f53786a25f8d6b4e4207852",
-                "sha256:6d00cbff4f0ae4d5681235e10bc470cc34652c13e6778e00585eb9d6e5018de4"
+                "sha256:b6f42c04fd4a502698719e85d690117095d2a413b9b810cfa9e830e5f5007f7e",
+                "sha256:b906a4efd07391d49d38ca504499ce187722c13ba11cd17c4eea6b74f57cf0b2"
             ],
-            "version": "==1.5.9"
+            "version": "==1.5.13"
         },
         "botocore": {
             "hashes": [
-                "sha256:051a2a194d969ef8388d457b610b4222dccd58cccf408f3ceac3e9b1d7dc8720",
-                "sha256:cc5df29da7c3f523edfc6086e082204b80945b5c73bf82a181018b7f1a5d6975"
+                "sha256:10af3765a5487aa4b29d271c166a0a71c92846e91c2512364a9e620f55710911",
+                "sha256:269bfecb27fea5f3bdc2293b19015f575a9f135d00b2bde8991f0f598b7d115d"
             ],
-            "version": "==1.8.23"
+            "version": "==1.8.27"
         },
         "configparser": {
             "hashes": [
@@ -133,8 +140,16 @@
                 "sha256:8ad8c4783bf61ded74527bffb48ed9b54166685e4230386a9ed9b1279e2df5b1",
                 "sha256:2d81cbbe0e73112bdfe6ef8576f2238f2ba27dd0d55752a776c41d38b7da2850"
             ],
-            "markers": "python_version < '3.4'",
+            "markers": "python_version == '2.7'",
             "version": "==1.1.6"
+        },
+        "funcsigs": {
+            "hashes": [
+                "sha256:330cc27ccbf7f1e992e69fef78261dc7c6569012cf397db8d3de0234e6c937ca",
+                "sha256:a7bb0f2cf3a3fd1ab2732cb49eba4252c2af4240442415b4abce3b87022a8f50"
+            ],
+            "markers": "python_version < '3.0'",
+            "version": "==1.0.2"
         },
         "futures": {
             "hashes": [
@@ -243,6 +258,12 @@
             ],
             "version": "==0.7.4"
         },
+        "pluggy": {
+            "hashes": [
+                "sha256:7f8ae7f5bdf75671a718d2daf0a64b7885f74510bcd98b1a0bb420eb9a9d0cff"
+            ],
+            "version": "==0.6.0"
+        },
         "prompt-toolkit": {
             "hashes": [
                 "sha256:3f473ae040ddaa52b52f97f6b4a493cfa9f5920c255a12dc56a7d34397a398a4",
@@ -258,6 +279,13 @@
             ],
             "version": "==0.5.2"
         },
+        "py": {
+            "hashes": [
+                "sha256:8cca5c229d225f8c1e3085be4fcf306090b00850fefad892f9d96c7b6e2f310f",
+                "sha256:ca18943e28235417756316bfada6cd96b23ce60dd532642690dcfdaba988a76d"
+            ],
+            "version": "==1.5.2"
+        },
         "pygments": {
             "hashes": [
                 "sha256:78f3f434bcc5d6ee09020f92ba487f95ba50f1e3ef83ae96b9d5ffa1bab25c5d",
@@ -271,6 +299,13 @@
                 "sha256:3035e44e37cd09919e9edad5573af01d7c6b9c52a0ebb4781185ae7ab690458b"
             ],
             "version": "==1.8.1"
+        },
+        "pytest": {
+            "hashes": [
+                "sha256:b84878865558194630c6147f44bdaef27222a9f153bbd4a08908b16bf285e0b1",
+                "sha256:53548280ede7818f4dc2ad96608b9f08ae2cc2ca3874f2ceb6f97e3583f25bc4"
+            ],
+            "version": "==3.3.2"
         },
         "python-dateutil": {
             "hashes": [

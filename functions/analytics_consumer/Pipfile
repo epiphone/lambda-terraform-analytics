@@ -12,6 +12,9 @@ pylint = "*"
 yapf = "*"
 ipdb = "*"
 ipython = "*"
+pytest = "*"
+moto = "*"
+pytest-mock = "*"
 
 
 [packages]
