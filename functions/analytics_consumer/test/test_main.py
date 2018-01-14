@@ -6,59 +6,54 @@ import boto3
 from moto import mock_lambda, mock_sqs
 import pytest
 
-os.environ['SQS_URL'] = ''
 os.environ['WORKER_LAMBDA_ARN'] = 'test-worker-lambda-arn'
 
 
 @pytest.fixture
-def sqs():
+def queue():
     """
-    Return a mocked SQS Queue object.
+    Return a mocked SQS Queue object, save its URL to an environment variable.
     """
     mock_sqs().start()
     queue_url = boto3.client('sqs').create_queue(QueueName='test')['QueueUrl']
-    queue = boto3.resource('sqs').Queue(queue_url)
+    os.environ['SQS_URL'] = queue_url
 
-    yield queue
+    yield boto3.resource('sqs').Queue(queue_url)
     mock_sqs().stop()
 
 
 @pytest.fixture
-def lambda_wrapper(mocker, lambda_context, sqs):
+def handler(lambda_context):
     """
-    Set up a mock SQS queue and return the main lambda handler.
+    Return a function to invoke the main lambda handler with a mock context.
     """
-    os.environ['SQS_URL'] = sqs.url
-    mock_invoke = mocker.patch('main.invoke')
     import main
-    return lambda: main.main({}, lambda_context), sqs, mock_invoke
+    return lambda: main.main({}, lambda_context)
 
 
-def test_use_aws_test_credentials(lambda_wrapper):
+def test_use_fake_aws_credentials(queue):
     import main
     creds = main.boto3.DEFAULT_SESSION.get_credentials()
     assert creds.access_key == 'xxx'
     assert creds.secret_key == 'xxx'
 
 
-def test_no_msgs_in_queue(lambda_wrapper):
-    invoke_lambda, queue, mock_invoke = lambda_wrapper
-
-    assert invoke_lambda() == {'processed': 0}
+def test_no_msgs_in_queue(mocker, handler, queue):
+    mock_invoke = mocker.patch('main.invoke')
+    assert handler() == {'processed': 0}
     mock_invoke.assert_not_called()
 
     msgs_left = queue.receive_messages()
     assert msgs_left == []
 
 
-def test_single_receive_batch(lambda_wrapper, event):
-    invoke_lambda, queue, mock_invoke = lambda_wrapper
-
+def test_single_receive_batch(mocker, handler, queue, event):
     e1, e2 = event(), event()
     queue.send_message(MessageBody=json.dumps({'Message': json.dumps(e1)}))
     queue.send_message(MessageBody=json.dumps({'Message': json.dumps(e2)}))
 
-    assert invoke_lambda() == {'processed': 2}
+    mock_invoke = mocker.patch('main.invoke')
+    assert handler() == {'processed': 2}
     mock_invoke.assert_called_once_with(
         FunctionName=os.environ['WORKER_LAMBDA_ARN'],
         InvocationType='Event',
@@ -69,9 +64,7 @@ def test_single_receive_batch(lambda_wrapper, event):
 
 
 @mock_lambda
-def test_multiple_receive_batches(lambda_wrapper, mocker, event):
-    invoke_lambda, queue, mock_invoke = lambda_wrapper
-
+def test_multiple_receive_batches(mocker, handler, queue, event):
     n = 87
     batch_size = 10
     batches_n = n // batch_size + 1
@@ -87,7 +80,8 @@ def test_multiple_receive_batches(lambda_wrapper, mocker, event):
             })
         } for e in batch])
 
-    assert invoke_lambda() == {'processed': n}
+    mock_invoke = mocker.patch('main.invoke')
+    assert handler() == {'processed': n}
     calls = [
         mocker.call(
             FunctionName=os.environ['WORKER_LAMBDA_ARN'],
@@ -100,8 +94,7 @@ def test_multiple_receive_batches(lambda_wrapper, mocker, event):
     assert msgs_left == []
 
 
-def test_deduplicate(lambda_wrapper, mocker, event):
-    invoke_lambda, queue, mock_invoke = lambda_wrapper
+def test_deduplicate(mocker, handler, queue, event):
     events = [event() for _ in range(7)]
 
     # Mock a SQS queue with 2 duplicates among event messages:
@@ -117,7 +110,8 @@ def test_deduplicate(lambda_wrapper, mocker, event):
 
     mocker.patch('main.sqs').receive_messages.side_effect = [msgs, []]
 
-    assert invoke_lambda() == {'processed': len(events)}
+    mock_invoke = mocker.patch('main.invoke')
+    assert handler() == {'processed': len(events)}
     mock_invoke.assert_called_once_with(
         FunctionName=os.environ['WORKER_LAMBDA_ARN'],
         InvocationType='Event',

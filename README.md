@@ -1,5 +1,12 @@
 # A Simple Lambda/Terraform analytics service
 
+Sets up (a) a general messaging topic in which to hook up additional event listeners and (b) a little analytics service that feeds events into a database that can be further used by a dashboard frontend like Superset or Metadash.
+
+Features
+- Terraform-managed Lambdas (inspired by [this blog post](https://medium.com/build-acl/aws-lambda-deployment-with-terraform-24d36cc86533))
+- mocking AWS with [moto](https://github.com/spulec/moto) for local tests
+- pipenv to keep development dependencies out of deployed Lambda zips
+
 ![Architecture](doc/cloudcraft.png)
 
 ## Dependencies
@@ -54,7 +61,7 @@ inv invoke analytics_worker --env staging --payload '[{"event_id": 12}]'
 
 ## Limitations
 
-Due to [a bug in the Terraform Postgres provider](https://github.com/terraform-providers/terraform-provider-postgresql/issues/16) changing analytics DB producer/consumer passwords in a `.tfvars` file doesn't actually result in a password update. As a workaround you can manually `DROP ROLE ...` via `psql` and re-apply terraform.
+Due to [a bug in the Terraform Postgres provider](https://github.com/terraform-providers/terraform-provider-postgresql/issues/16), changing db password variables doesn't actually result in a password update. As a workaround you can manually `DROP ROLE ...` via `psql` and re-apply terraform.
 
 ## TODO
 

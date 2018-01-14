@@ -13,6 +13,7 @@ yapf = "*"
 ipython = "*"
 ipdb = "*"
 pytest = "*"
+pytest-mock = "*"
 
 
 [packages]

@@ -4,6 +4,7 @@ Management tasks for the analytics service.
 import base64
 from datetime import datetime
 import json
+import re
 import os
 import uuid
 
@@ -45,6 +46,27 @@ def build(ctx, func=None):
 
 
 @task
+def gen_event(ctx):
+    """
+    Print out a randomly generated sample event in JSON.
+    """
+    event = json.dumps({
+        'event_id': str(uuid.uuid4()),
+        'event_timestamp': datetime.utcnow().isoformat() + 'Z',
+        'event_type': '_test_event',
+        'event_version': '1.0',
+        'app_title': '_test_app',
+        'app_version': '1.0',
+        'user_id': str(uuid.uuid4()),
+        'user_name': 'test@user.com',
+        'meta': {},
+        'user_payload': {}
+    })
+    print(event)
+    return event
+
+
+@task
 def init_db(ctx, env=None):
     """
     Initialize the analytics database. Operation is idempotent so running it
@@ -83,7 +105,8 @@ def invoke(ctx, func, env=None, payload=None):
         print(ret.command.replace('  ', ''))
 
         if ret.ok:
-            print(base64.b64decode(ret.stdout.split()[-2]).decode('utf-8'))
+            log_result = re.findall(r'LogResult": "(.+)"', ret.stdout)[0]
+            print(base64.b64decode(log_result).decode('utf-8'))
             ctx.run(f'cat {output_file_name}')
             ctx.run(f'rm {output_file_name}')
         else:
@@ -129,18 +152,7 @@ def publish_event(ctx, env=None, n=1):
         topic = ctx.run(
             'terraform output messaging_topic_arn', hide=True).stdout
         for _ in range(n):
-            event = json.dumps({
-                'event_id': str(uuid.uuid4()),
-                'event_timestamp': datetime.utcnow().isoformat() + 'Z',
-                'event_type': '_test_event',
-                'event_version': '1.0',
-                'app_title': '_test_app',
-                'app_version': '1.0',
-                'user_id': str(uuid.uuid4()),
-                'user_name': 'test@user.com',
-                'meta': {},
-                'user_payload': {}
-            })
+            event = gen_event(ctx)
             ctx.run(
                 f"aws sns publish --message '{event}' --topic-arn {topic}",
                 echo=True)
@@ -153,6 +165,7 @@ def test(ctx, func=None):
     """
     for f in (func if func else _list_functions()):
         with ctx.cd(os.path.join(FUNCTIONS_PATH, f)):
+            print('Testing', f)
             ctx.run('pipenv run python -m pytest -s')
 
 

@@ -38,15 +38,11 @@ def main(event, context):
         except KeyError:
             logger.warn('Invalid event object, skipping: %s', e)
 
-    try:
-        cursor = conn.cursor()
-        execute_values(cursor, INSERT_QUERY, values)
-        conn.commit()
-        cursor.close()
-        res = {'processed': len(values), 'errors': len(event) - len(values)}
-        logger.info('Processed %d event(s), skipped %d', res['processed'],
-                    res['errors'])
-        return res
-    except:
-        conn.rollback()
-        logger.exception('Insert failed')
+    if values:
+        with conn:
+            with conn.cursor() as cur:
+                execute_values(cur, INSERT_QUERY, values)
+
+    logger.info('Processed %d event(s), skipped %d', len(values),
+                len(event) - len(values))
+    return {'processed': len(values)}

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os
-from uuid import uuid4
+import uuid
 
 import pytest
 
@@ -31,4 +31,15 @@ def event():
     """
     Return random analytics event factory function.
     """
-    return lambda: {'event_id': str(uuid4()), 'meta': {'x': 10}}
+    return lambda: {
+        'event_id': str(uuid.uuid4()),
+        'event_timestamp': datetime.utcnow().isoformat() + 'Z',
+        'event_type': '_test_event',
+        'event_version': '1.0',
+        'app_title': '_test_app',
+        'app_version': '1.0',
+        'user_id': str(uuid.uuid4()),
+        'user_name': 'test@user.com',
+        'meta': {},
+        'user_payload': {}
+    }
