@@ -1,32 +1,3 @@
-variable "environment" {
-  type    = "map"
-  default = {}
-}
-
-variable "functions_path" {}
-variable "name" {}
-variable "stage" {}
-
-variable "description" {
-  default = "Created by Terraform"
-}
-
-variable "handler" {
-  default = "main.main"
-}
-
-variable "runtime" {
-  default = "python3.6"
-}
-
-variable "memory_size" {
-  default = "128"
-}
-
-variable "timeout" {
-  default = "3"
-}
-
 // Lambda IAM role base definition
 resource "aws_iam_role" "role" {
   name = "lambda_${var.name}_${var.stage}"
@@ -84,10 +55,25 @@ resource "aws_lambda_function" "lambda" {
   }
 }
 
-output "arn" {
-  value = "${aws_lambda_function.lambda.arn}"
+resource "aws_cloudwatch_event_rule" "scheduled" {
+  count               = "${var.schedule != "" ? 1 : 0}"
+  name                = "${var.name}_scheduled_event_${var.stage}"
+  description         = "Trigger ${var.name}_${var.stage} as per ${var.schedule}"
+  schedule_expression = "${var.schedule}"
 }
 
-output "iam_role_name" {
-  value = "${aws_iam_role.role.name}"
+resource "aws_cloudwatch_event_target" "scheduled_trigger" {
+  count     = "${var.schedule != "" ? 1 : 0}"
+  rule      = "${aws_cloudwatch_event_rule.scheduled.name}"
+  target_id = "check_foo"
+  arn       = "${aws_lambda_function.lambda.arn}"
+}
+
+resource "aws_lambda_permission" "allow_scheduled_trigger_to_invoke_lambda" {
+  count         = "${var.schedule != "" ? 1 : 0}"
+  statement_id  = "AllowExecutionFromCloudWatch_${var.name}_${var.stage}"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.lambda.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.scheduled.arn}"
 }

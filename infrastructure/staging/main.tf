@@ -50,6 +50,7 @@ module "analytics_queue" {
   event_created_topic_arn = "${module.messaging.topic_arn}"
   analytics_db_url        = "${local.analytics_db_producer_url}"
   analytics_db_table      = "${module.analytics_db.schema}.events"
+  consumer_schedule       = "rate(10 minutes)"
 }
 
 module "analytics_db" {

@@ -1,9 +1,3 @@
-variable "analytics_db_url" {}
-variable "analytics_db_table" {}
-variable "event_created_topic_arn" {}
-variable "functions_path" {}
-variable "stage" {}
-
 resource "aws_sqs_queue" "deadletter" {
   name = "analytics_events_deadletter_${var.stage}"
 }
@@ -51,6 +45,7 @@ module "consumer_lambda" {
   description    = "Consume analytics events queue."
   functions_path = "${var.functions_path}"
   timeout        = 300
+  schedule       = "${var.consumer_schedule}"
   stage          = "${var.stage}"
 
   environment = {
@@ -103,8 +98,4 @@ resource "aws_iam_role_policy" "consumer" {
   ]
 }
 EOF
-}
-
-output "queue_url" {
-  value = "${aws_sqs_queue.events.id}"
 }

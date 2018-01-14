@@ -1,9 +1,9 @@
 # A Simple Lambda/Terraform analytics service
 
-Sets up (a) a general messaging topic in which to hook up additional event listeners and (b) a little analytics service that feeds events into a database that can be further used by a dashboard frontend like Superset or Metadash.
+Sets up (a) a general messaging topic in which to hook up additional event listeners and (b) a little analytics service that feeds events into a database. The database can be further used by a dashboard frontend like Superset or Metadash.
 
 Features
-- Terraform-managed Lambdas (inspired by [this blog post](https://medium.com/build-acl/aws-lambda-deployment-with-terraform-24d36cc86533))
+- Terraform-managed Lambdas (inspired by [this blog post](https://medium.com/build-acl/aws-lambda-deployment-with-terraform-24d36cc86533)) + a helper script for most common management tasks
 - mocking AWS with [moto](https://github.com/spulec/moto) for local tests
 - pipenv to keep development dependencies out of deployed Lambda zips
 
@@ -66,6 +66,5 @@ Due to [a bug in the Terraform Postgres provider](https://github.com/terraform-p
 ## TODO
 
 - improve docs
-- cloudwatch cron
 - testing
 - local invocation
