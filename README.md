@@ -1,5 +1,7 @@
 # Simple Lambda/Terraform analytics service
 
+[![Build Status](https://travis-ci.org/epiphone/lambda-terraform-analytics.svg?branch=master)](https://travis-ci.org/epiphone/lambda-terraform-analytics)
+
 Sets up A) a general messaging topic in which to hook up additional event listeners and B) a little analytics service that feeds all events into a database. The database can be further plugged into a dashboard frontend like [Superset](https://github.com/apache/incubator-superset) or [Metadash](https://github.com/metabase/metabase).
 
 Features include
