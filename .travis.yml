@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.6"
+install:
+  - pip install -U pip
+  - pip install invoke
+  - inv build
+script: inv test
+notifications:
+  email: false
