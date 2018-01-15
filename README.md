@@ -9,6 +9,7 @@ Features include
 - Multi-environment deployment with separate Terraform states
 - Local tests using [moto](https://github.com/spulec/moto) to mock AWS endpoints
 - Keeping development dependencies out of deployed Lambda zips with pipenv
+- Overriding dependencies with Lambda-compatible precompiled packages on deployment (e.g. [`precompiled/psycopg2/`](precompiled/psycopg2))
 
 ![Architecture](doc/cloudcraft.png)
 
