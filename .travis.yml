@@ -4,7 +4,7 @@ python:
 cache: pip
 install:
   - pip install -U pip
-  - pip install invoke
+  - pip install invoke pipenv
   - inv build
 script: inv test
 notifications:
