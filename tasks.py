@@ -167,7 +167,7 @@ def test(ctx, func=None):
         with ctx.cd(os.path.join(FUNCTIONS_PATH, f)):
             print('Testing', f)
             ctx.run('pipenv install --dev')
-            ctx.run('pipenv run python -m pytest -s')
+            ctx.run('pipenv run python -m pytest -s --cov=main')
 
 
 @task

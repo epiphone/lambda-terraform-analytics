@@ -4,8 +4,11 @@ python:
 cache: pip
 install:
   - pip install -U pip
-  - pip install invoke pipenv
+  - pip install codecov invoke pipenv
   - inv build
 script: inv test
+after_success:
+  - codecov
 notifications:
   email: false
+

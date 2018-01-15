@@ -14,6 +14,7 @@ ipython = "*"
 ipdb = "*"
 pytest = "*"
 pytest-mock = "*"
+pytest-cov = "*"
 
 
 [packages]

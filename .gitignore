@@ -13,3 +13,4 @@ build
 .vscode/
 *.pyc
 .cache/
+.coverage

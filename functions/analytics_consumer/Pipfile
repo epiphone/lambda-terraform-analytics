@@ -15,6 +15,7 @@ ipython = "*"
 pytest = "*"
 moto = "*"
 pytest-mock = "*"
+pytest-cov = "*"
 
 
 [packages]
