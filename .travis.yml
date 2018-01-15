@@ -4,10 +4,11 @@ python:
 cache: pip
 install:
   - pip install -U pip
-  - pip install codecov invoke pipenv
+  - pip install codecov coverage invoke pipenv
   - inv build
 script: inv test
 after_success:
+  - coverage combine functions/*/.coverage
   - codecov
 notifications:
   email: false
