@@ -166,6 +166,7 @@ def test(ctx, func=None):
     for f in (func if func else _list_functions()):
         with ctx.cd(os.path.join(FUNCTIONS_PATH, f)):
             print('Testing', f)
+            ctx.run('pipenv install --dev')
             ctx.run('pipenv run python -m pytest -s')
 
 
