@@ -30,17 +30,18 @@ resource "aws_security_group" "allow_postgres_from_all" {
 }
 
 resource "aws_db_instance" "shared_analytics_db" {
-  identifier              = "shared-analytics-db"
-  allocated_storage       = 20
-  storage_type            = "gp2"
-  engine                  = "postgres"
-  engine_version          = "9.6.5"
-  instance_class          = "db.t2.micro"
-  name                    = "analytics_db"
-  username                = "${var.analytics_db_master_username}"
-  password                = "${var.analytics_db_master_password}"
-  port                    = 5432
-  publicly_accessible     = true
-  backup_retention_period = 7
-  vpc_security_group_ids  = ["${aws_security_group.allow_postgres_from_all.id}"]
+  identifier                = "shared-analytics-db"
+  allocated_storage         = 20
+  storage_type              = "gp2"
+  engine                    = "postgres"
+  engine_version            = "9.6.5"
+  final_snapshot_identifier = "shared-analytics-db-final-snapshot"
+  instance_class            = "db.t2.micro"
+  name                      = "analytics_db"
+  username                  = "${var.analytics_db_master_username}"
+  password                  = "${var.analytics_db_master_password}"
+  port                      = 5432
+  publicly_accessible       = true
+  backup_retention_period   = 7
+  vpc_security_group_ids    = ["${aws_security_group.allow_postgres_from_all.id}"]
 }
